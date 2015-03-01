@@ -19,9 +19,15 @@ class VsetvGrabber:
             '//div[@id="schedule_container"]')
 
     def get_channels_titles_dict(self):
-        return [{'display-name': [(elem, u'ru')], 'id': str(i)}
-                for i, elem in enumerate(
-                self.g.doc.select('//td[@class="channeltitle"]').text_list(), 1)]
+        ch_title = self.g.doc.select('//td[@class="channeltitle"]').text_list()
+        ch_num = self.g.doc.select('//div[@class="chnum"]').text_list()
+        dict_channels = []
+        for x, y in zip(ch_num, ch_title):
+            dict_channels.append({'display-name': [(x, u'ru')], 'id': y})
+        return dict_channels
+        
+    def get_channels_nums_dict(self):
+        return self.g.doc.select('//div[@class="chnum"]').text_list()
 
     def get_starttime(self):
         return [self.main_selector[i].select(
@@ -69,17 +75,17 @@ class VsetvGrabber:
 
     def make_dict(self):
         final_dict = []
-        m = 1
-        for i, j, k in zip(self.get_programmes_titles(),
+        for i, j, k, m in zip(self.get_programmes_titles(),
                            self.correct_starttime(),
-                           self.get_stoptime()):
+                           self.get_stoptime(),
+                           self.get_channels_nums_dict()):
             for a, b, c in zip(i, j, k):
                 final_dict.append({'channel': str(m),
                                    'start': self.time_to_string(b),
                                    'stop': self.time_to_string(c),
                                    'title': [(a, u'ru')]})
-            m += 1
         return final_dict
+
 
     def write(self, file):
         w = xmltv.Writer()
